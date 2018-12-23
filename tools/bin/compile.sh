@@ -145,7 +145,7 @@ function compile_and_generate()
     fi
 }
 rm -rf ${Output}
-compile $@
+compile_and_generate $@
 
 
 echo "ending ."

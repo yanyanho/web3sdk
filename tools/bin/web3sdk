@@ -298,7 +298,7 @@ elif [ $1 == "InitTokens" -o $1 == "SendSelectedTokens" -o $1 == "RegisterAccoun
     exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.fisco.bcos.web3j.contract.tools.UTXODemo "$@"
 	
 else	
-	exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" Runner "$@"
+	exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.fisco.bcos.web3j.console.Runner "$@"
 fi	
 
 

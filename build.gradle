@@ -176,4 +176,4 @@ jar {
 //}
 
 
-mainClassName  = System.getProperty("exec.mainClass") ?:  "org.fisco.bcos.channel.test.PerfOkTransaction"
+///mainClassName  = System.getProperty("exec.mainClass") ?:  "org.fisco.bcos.channel.test.PerfOkTransaction"
