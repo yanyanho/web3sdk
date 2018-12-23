@@ -15,7 +15,7 @@
        #===编译we3bsdk源码，生成dist目录 ===
        $ cd web3sdk
 
- 拷贝证书文件ca.crt和client.keystore到web3sdk/src/test/resources目录下；
+ 拷贝证书文件ca.crt和keystore.p12到web3sdk/src/test/resources目录下；
 找到 web3sdk/src/test/resources/applicationContext.xml文件的channelService,
 增加<property name="groupId" value="1" /> groupId配置。
  ---
@@ -23,6 +23,9 @@
       *部署OK合约* gradle test --tests  org.fisco.bcos.channel.test.contract.OkTest
       *压力测试*  gradle test --tests  org.fisco.bcos.channel.test.contract.PressureTest
       *基本测试*  gradle test --tests org.fisco.bcos.channel.test.BasicTest
+      *token测试*  gradle test --tests org.fisco.bcos.channel.test.contract.Erc20Test
+      *tps测试*  gradle run -Dexec.mainClass=org.fisco.bcos.channel.test.contract.PerfomanceOk --args='trans 100 100 1'
+
 ---
   目前你也可以gradle build (确保gradle 版本在4.10.1以上) 之后到dist目录去执行java -cp命令:
 - *部署合约*
@@ -45,4 +48,4 @@
       2. 确保本地安装了fisco-solc；
       3. 切换到tools/bin 执行 ./compile fisco-solc out;
       4. 生成的bin文件即在tools/contracts/out目录下。
-      5. abi转成java类，可以参考项目中SolidityFunctionWrapperGeneratorTest 测试类可以帮你生成把abi文件转换成相应Java类。
+      5. abi转成java类，可以参考项目中SolidityFunctionWrapperGeneratorTest 测试类(执行 gradle test --test org.fisco.bcos.channel.test.solidity.SolidityFunctionWrapperGeneratorTest.generateClassFromABIForGreeter)可以帮你生成把abi文件转换成相应Java类。

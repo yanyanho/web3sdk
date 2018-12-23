@@ -1,5 +1,6 @@
 package org.fisco.bcos.channel.handler;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -62,8 +63,8 @@ public class ChannelConnections {
 
 	private Callback callback;
 	private List<String> connectionsStr;
-	private String keystorePassWord = "123456";
-	private String clientCertPassWord = "123456";
+	private String keystorePassWord = "";
+	private String clientCertPassWord= "";
 	private List<ConnectionInfo> connections = new ArrayList<ConnectionInfo>();
 	private Boolean running = false;
 	private ThreadPoolTaskExecutor threadPool;
@@ -206,9 +207,9 @@ public class ChannelConnections {
             .childHandler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
-                    KeyStore ks = KeyStore.getInstance("JKS");
+                    KeyStore ks = KeyStore.getInstance("PKCS12");
 
-					final Resource keystoreResource =  new ClassPathResource("client.keystore");
+					final Resource keystoreResource =  new ClassPathResource("keystore.p12");
 					final Resource caResource = new ClassPathResource("ca.crt");
 
 					ks.load(keystoreResource.getInputStream(), getKeystorePassWord().toCharArray());
@@ -222,7 +223,7 @@ public class ChannelConnections {
                 	handler.setIsServer(true);
                 	handler.setThreadPool(selfThreadPool);
                 	
-                	SslContext sslCtx = SslContextBuilder.forServer((PrivateKey)ks.getKey("client", getClientCertPassWord().toCharArray()), (X509Certificate)ks.getCertificate("client"))
+                	SslContext sslCtx = SslContextBuilder.forServer((PrivateKey)ks.getKey("client", getClientCertPassWord().toCharArray()), (X509Certificate[])ks.getCertificateChain("client"))
                 			.trustManager(caResource.getFile())
                 			.build();
                 	
@@ -293,16 +294,12 @@ public class ChannelConnections {
 		
 		final ChannelConnections selfService = this;
 		final ThreadPoolTaskExecutor selfThreadPool = threadPool;
-		
-		final Resource keystoreResource =  new ClassPathResource("client.keystore");
+
         final Resource caResource = new ClassPathResource("ca.crt");
         
 		bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
-            	KeyStore ks = KeyStore.getInstance("JKS");
-            	InputStream ksInputStream = keystoreResource.getInputStream();
-            	ks.load(ksInputStream, 	getKeystorePassWord().toCharArray());
 				/*
 				 * 每次连接使用新的handler 连接信息从socketChannel中获取
 				 */
@@ -310,9 +307,7 @@ public class ChannelConnections {
 				handler.setConnections(selfService);
 				handler.setIsServer(false);
 				handler.setThreadPool(selfThreadPool);
-
-				SslContext sslCtx = SslContextBuilder.forClient().trustManager(caResource.getFile())
-						.build();
+				SslContext sslCtx = SslContextBuilder.forClient().trustManager(caResource.getFile()).build();
 
 				ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()),
 						new LengthFieldBasedFrameDecoder(1024 * 1024 * 4, 0, 4, -4, 0),
