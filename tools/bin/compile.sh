@@ -81,9 +81,9 @@ function generate_java_code()
        local item=`basename ${itemfile} ".sol"`
 	   LOG_INFO "... generate java code according to ${item}.sol abi, bin file..."
        if [ "${guomi_output}" != "" -a -d "${guomi_output}" ];then
-           execute_cmd "${WEB3J} solidity generate ${output_dir}/${item}.bin ${output_dir}/${item}.abi -g ${guomi_output}/${item}.bin -o ${output_dir} -p ${package}"
+           execute_cmd "${WEB3J} solidity generate -b ${output_dir}/${item}.bin -a ${output_dir}/${item}.abi -g ${guomi_output}/${item}.bin -o ${output_dir} -p ${package}"
        else
-           execute_cmd "${WEB3J} solidity generate ${output_dir}/${item}.bin ${output_dir}/${item}.abi -o ${output_dir} -p ${package}"
+           execute_cmd "${WEB3J} solidity generate -b ${output_dir}/${item}.bin -a ${output_dir}/${item}.abi -o ${output_dir} -p ${package}"
        fi
    done
 }
