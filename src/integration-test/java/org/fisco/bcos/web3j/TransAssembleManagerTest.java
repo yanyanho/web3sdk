@@ -9,12 +9,13 @@ import org.fisco.bcos.web3j.tx.txdecode.BaseException;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class TransAssembleManagerTest  extends TestBase {
 
@@ -57,14 +58,19 @@ public class TransAssembleManagerTest  extends TestBase {
     @Test
     public void testSendQueryTransaction() throws Exception {
         Ok ok = Ok.deploy(web3j,credentials,gasPrice,gasLimit).send();
-        System.out.println(web3j.getNodeVersion().sendAsync().get().getNodeVersion());
         List ilist = new ArrayList<>();
         ilist.add(5);
+
+        String s =  transactionAssembleManager.transactionAssembleForMethodInvoke(abi,1,ok.getContractAddress(),"trans",ilist);
+
+        String signstr =  transactionAssembleManager.signMessageByEncryptType(s, credentials.getEcKeyPair(),0 );
+
+        TransactionReceipt t1 = transactionAssembleManager.sendSignedTransaction(signstr,true);
+
         String encodeStr =  transactionAssembleManager.transactionAssembleForMethodInvoke(abi,1,ok.getContractAddress(),"get",null);
 
         Object s1 =  transactionAssembleManager.sendQueryTransaction(encodeStr,ok.getContractAddress(),"get",abi);
-
-        System.out.println(s1);
+        assertNotNull(s1);
     }
 
 

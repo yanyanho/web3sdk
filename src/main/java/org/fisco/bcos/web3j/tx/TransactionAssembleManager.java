@@ -26,6 +26,7 @@ import org.fisco.bcos.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -81,6 +82,9 @@ public class TransactionAssembleManager {
 
         List<String> funcInputTypes = ContractAbiUtil.getFuncInputType(abiDefinition);
         // check param match inputs
+        if(funcParam == null) {
+            funcParam =  new ArrayList<>();
+        }
         if (funcInputTypes.size() != funcParam.size()) {
             throw new TransactionAssembleException("contract funcParam size is error");
         }
