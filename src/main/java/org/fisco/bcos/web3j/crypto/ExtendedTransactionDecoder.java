@@ -24,7 +24,7 @@ public class ExtendedTransactionDecoder {
         BigInteger chainId = ((RlpString) values.getValues().get(7)).asPositiveBigInteger();
         BigInteger groupId = ((RlpString) values.getValues().get(8)).asPositiveBigInteger();
         String extraData = ((RlpString) values.getValues().get(9)).asString();
-        if (values.getValues().size() > 9) {
+        if (values.getValues().size() > 10) {
             byte v = ((RlpString) values.getValues().get(10)).getBytes()[0];
             byte[] r =
                     Numeric.toBytesPadded(

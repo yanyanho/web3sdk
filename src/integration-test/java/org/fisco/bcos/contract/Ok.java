@@ -1,11 +1,21 @@
+/*
+ * Copyright 2014-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.fisco.bcos.contract;
 
 import io.reactivex.Flowable;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.fisco.bcos.channel.client.TransactionSucCallback;
 import org.fisco.bcos.web3j.abi.EventEncoder;
 import org.fisco.bcos.web3j.abi.TypeReference;
@@ -23,6 +33,12 @@ import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.fisco.bcos.web3j.tx.Contract;
 import org.fisco.bcos.web3j.tx.TransactionManager;
 import org.fisco.bcos.web3j.tx.gas.ContractGasProvider;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Auto generated code.
@@ -110,7 +126,7 @@ public class Ok extends Contract {
   }
 
   public List<TransEventEventResponse> getTransEventEvents(TransactionReceipt transactionReceipt) {
-    List<Contract.EventValuesWithLog> valueList =
+    List<EventValuesWithLog> valueList =
         extractEventParametersWithLog(TRANSEVENT_EVENT, transactionReceipt);
     ArrayList<TransEventEventResponse> responses =
         new ArrayList<TransEventEventResponse>(valueList.size());
@@ -142,7 +158,7 @@ public class Ok extends Contract {
   }
 
   public Flowable<TransEventEventResponse> transEventEventFlowable(
-      DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+          DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
     BcosFilter filter = new BcosFilter(startBlock, endBlock, getContractAddress());
     filter.addSingleTopic(EventEncoder.encode(TRANSEVENT_EVENT));
     return transEventEventFlowable(filter);
@@ -185,18 +201,18 @@ public class Ok extends Contract {
   }
 
   public static RemoteCall<Ok> deploy(
-      Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
+          Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
     return deployRemoteCall(Ok.class, web3j, credentials, contractGasProvider, BINARY, "");
   }
 
   public static RemoteCall<Ok> deploy(
-      Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+          Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
     return deployRemoteCall(Ok.class, web3j, transactionManager, contractGasProvider, BINARY, "");
   }
 
   @Deprecated
   public static RemoteCall<Ok> deploy(
-      Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+          Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
     return deployRemoteCall(Ok.class, web3j, credentials, gasPrice, gasLimit, BINARY, "");
   }
 
