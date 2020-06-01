@@ -123,6 +123,9 @@ public class TransactionAssembleManager {
         if (abiDefinition.getInputs().size() != 0) {
 
             List<String> funcInputTypes = ContractAbiUtil.getFuncInputType(abiDefinition);
+            if(constructorParam == null) {
+                constructorParam =  new ArrayList<>();
+            }
             // check param match inputs
             if (funcInputTypes.size() != constructorParam.size()) {
                 throw new TransactionAssembleException("contract constructor funcParam size is error");
