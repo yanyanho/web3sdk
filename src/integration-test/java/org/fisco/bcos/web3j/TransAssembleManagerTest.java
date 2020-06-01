@@ -26,17 +26,17 @@ public class TransAssembleManagerTest  extends TestBase {
 
     @Test
     public void testDeploy() throws IOException, BaseException, InterruptedException, ExecutionException, TimeoutException {
-       String s =  transactionAssembleManager.transactionAssembleForDeploy(abi,bin,1 ,null);
+       String encodeTransaction =  transactionAssembleManager.transactionAssembleForDeploy(abi,bin,1 ,null);
 
-      String signstr =  transactionAssembleManager.signMessageByEncryptType(s, credentials.getEcKeyPair(),0 );
+      String signedStr =  transactionAssembleManager.signMessageByEncryptType(encodeTransaction, credentials.getEcKeyPair(),0 );
 
-       TransactionReceipt t = transactionAssembleManager.sendSignedTransaction(signstr,false);
-       String hash = Hash.sha3(signstr);
+       TransactionReceipt t = transactionAssembleManager.sendSignedTransaction(signedStr,false);
+       String hash = Hash.sha3(signedStr);
        assertTrue(hash .equals(t.getTransactionHash()));
         System.out.println(hash);
 
 
-       TransactionReceipt t1 = transactionAssembleManager.sendSignedTransaction(signstr,true);
+       TransactionReceipt t1 = transactionAssembleManager.sendSignedTransaction(signedStr,true);
         System.out.println(t1.getTransactionHash()+ "  " + t1.getStatus());
 
     }
@@ -44,14 +44,13 @@ public class TransAssembleManagerTest  extends TestBase {
     @Test
     public void testSendTransaction() throws Exception {
         Ok ok = Ok.deploy(web3j,credentials,gasPrice,gasLimit).send();
-        System.out.println(web3j.getNodeVersion().sendAsync().get().getNodeVersion());
         List ilist = new ArrayList<>();
         ilist.add(5);
-        String s =  transactionAssembleManager.transactionAssembleForMethodInvoke(abi,1,ok.getContractAddress(),"trans",ilist);
+        String encodeTransaction =  transactionAssembleManager.transactionAssembleForMethodInvoke(abi,1,ok.getContractAddress(),"trans",ilist);
 
-        String signstr =  transactionAssembleManager.signMessageByEncryptType(s, credentials.getEcKeyPair(),0 );
+        String signedStr =  transactionAssembleManager.signMessageByEncryptType(encodeTransaction, credentials.getEcKeyPair(),0 );
 
-        TransactionReceipt t1 = transactionAssembleManager.sendSignedTransaction(signstr,true);
+        TransactionReceipt t1 = transactionAssembleManager.sendSignedTransaction(signedStr,true);
         System.out.println(t1.getTransactionHash()+ "  " + t1.getStatus());
     }
 
@@ -61,11 +60,11 @@ public class TransAssembleManagerTest  extends TestBase {
         List ilist = new ArrayList<>();
         ilist.add(5);
 
-        String s =  transactionAssembleManager.transactionAssembleForMethodInvoke(abi,1,ok.getContractAddress(),"trans",ilist);
+        String encodeTransaction =  transactionAssembleManager.transactionAssembleForMethodInvoke(abi,1,ok.getContractAddress(),"trans",ilist);
 
-        String signstr =  transactionAssembleManager.signMessageByEncryptType(s, credentials.getEcKeyPair(),0 );
+        String signedStr =  transactionAssembleManager.signMessageByEncryptType(encodeTransaction, credentials.getEcKeyPair(),0 );
 
-        TransactionReceipt t1 = transactionAssembleManager.sendSignedTransaction(signstr,true);
+        TransactionReceipt t1 = transactionAssembleManager.sendSignedTransaction(signedStr,true);
 
         String encodeStr =  transactionAssembleManager.transactionAssembleForMethodInvoke(abi,1,ok.getContractAddress(),"get",null);
 
