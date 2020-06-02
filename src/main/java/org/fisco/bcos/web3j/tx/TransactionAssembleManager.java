@@ -194,6 +194,23 @@ public class TransactionAssembleManager {
         return response;
     }
 
+    public String signMessageByEncryptType(String hexMessage, ECKeyPair keyPair, int encryptType) {
+
+        byte[] messageByte = hexStringToBytes(hexMessage);
+        Sign.SignatureData signatureData;
+        if (encryptType == 1) {
+            signatureData = SM2Sign.sign(messageByte, keyPair);
+        } else {
+            ECDSASign ecdsaSign = new ECDSASign();
+            signatureData = ecdsaSign.signMessage(messageByte, keyPair);
+        }
+        //   String signDataStr = signatureDataToStringByType(signatureData, encryptType);
+
+        ExtendedRawTransaction extendedRawTransaction = ExtendedTransactionDecoder.decode(hexMessage);
+        byte[] signedMessage = ExtendedTransactionEncoder.encode(extendedRawTransaction, signatureData);
+        String signMsg = Numeric.toHexString(signedMessage);
+        return signMsg;
+    }
 
     public Boolean checkMethodIsConstant(String contractAbi, String funcName) throws TransactionAssembleException {
         AbiDefinition abiDefinition = getFunctionAbiDefinition(funcName, contractAbi);
@@ -244,24 +261,6 @@ public class TransactionAssembleManager {
         request.send();
     }
 
-
-    public String signMessageByEncryptType(String hexMessage, ECKeyPair keyPair, int encryptType) {
-
-        byte[] messageByte = hexStringToBytes(hexMessage);
-        Sign.SignatureData signatureData;
-        if (encryptType == 1) {
-            signatureData = SM2Sign.sign(messageByte, keyPair);
-        } else {
-            ECDSASign ecdsaSign = new ECDSASign();
-            signatureData = ecdsaSign.signMessage(messageByte, keyPair);
-        }
-        //   String signDataStr = signatureDataToStringByType(signatureData, encryptType);
-
-        ExtendedRawTransaction extendedRawTransaction = ExtendedTransactionDecoder.decode(hexMessage);
-        byte[] signedMessage = ExtendedTransactionEncoder.encode(extendedRawTransaction, signatureData);
-        String signMsg = Numeric.toHexString(signedMessage);
-        return signMsg;
-    }
 
     public static String signatureDataToStringByType(Sign.SignatureData signatureData, int encryptType) {
         byte[] byteArr;
