@@ -22,7 +22,6 @@ import org.fisco.bcos.web3j.tx.txdecode.BaseException;
 import org.fisco.bcos.web3j.tx.txdecode.ConstantCode;
 import org.fisco.bcos.web3j.tx.txdecode.ConstantProperties;
 import org.fisco.bcos.web3j.tx.txdecode.ContractAbiUtil;
-import org.fisco.bcos.web3j.utils.BlockLimit;
 import org.fisco.bcos.web3j.utils.Numeric;
 
 import java.io.IOException;
@@ -40,10 +39,27 @@ import static org.fisco.bcos.web3j.tx.gas.DefaultGasProvider.GAS_LIMIT;
 import static org.fisco.bcos.web3j.tx.gas.DefaultGasProvider.GAS_PRICE;
 import static org.fisco.bcos.web3j.utils.ByteUtil.hexStringToBytes;
 
-public class TransactionAssembleManager {
+public class TransactionAssembleManagerWithWeb3j {
 
+    private Web3j web3j;
+    private String userAddress;
     private static int transMaxWait = 30;
-    private static Long blockLimit = 600L;
+
+    public String getUserAddress() {
+        return userAddress;
+    }
+
+    public void setUserAddress(String userAddress) {
+        this.userAddress = userAddress;
+    }
+
+    public Web3j getWeb3j() {
+        return web3j;
+    }
+
+    public void setWeb3j(Web3j web3j) {
+        this.web3j = web3j;
+    }
 
     public int getTransMaxWait() {
         return transMaxWait;
@@ -53,15 +69,12 @@ public class TransactionAssembleManager {
         this.transMaxWait = transMaxWait;
     }
 
-    public Long getBlockLimit() {
-        return blockLimit;
+    public TransactionAssembleManagerWithWeb3j(Web3j web3j, String userAddress) {
+        this.web3j = web3j;
+        this.userAddress = userAddress;
     }
 
-    public  void setBlockLimit(Long blockLimit) {
-        this.blockLimit = blockLimit;
-    }
-
-    public static String transactionAssembleForMethodInvoke(String contractAbi, int groupId, BigInteger blockNumber, String contractAddress, String funcName, List<Object> funcParam) throws IOException, BaseException {
+    public String transactionAssembleForMethodInvoke(String contractAbi, int groupId, String contractAddress, String funcName, List<Object> funcParam) throws IOException, BaseException {
         AbiDefinition abiDefinition = getFunctionAbiDefinition(funcName, contractAbi);
         if (Objects.isNull(abiDefinition)) {
             throw new TransactionAssembleException("contract funcName is error");
@@ -90,10 +103,10 @@ public class TransactionAssembleManager {
             Random r = new Random();
             BigInteger randomid = new BigInteger(250, r);
 
-            BigInteger blockNumberLimit = blockNumber.add(new BigInteger(blockLimit.toString()));
+            BigInteger blockLimit = web3j.getBlockNumberCache();
 
             ExtendedRawTransaction extendedRawTransaction = ExtendedRawTransaction.createTransaction(randomid, GAS_PRICE,
-                            GAS_LIMIT, blockNumberLimit, contractAddress, BigInteger.ZERO, encodedFunction,
+                            GAS_LIMIT, blockLimit, contractAddress, BigInteger.ZERO, encodedFunction,
                             new BigInteger("1"), BigInteger.valueOf(groupId), "");
             byte[] encodedTransaction = ExtendedTransactionEncoder.encode(extendedRawTransaction);
             String encodedDataStr = Numeric.toHexString(encodedTransaction);
@@ -101,7 +114,7 @@ public class TransactionAssembleManager {
         }
     }
 
-    public static String transactionAssembleForDeploy(String contractAbi, String bytecodeBin, int groupId,  BigInteger blockNumber, List<Object> constructorParam) throws TransactionAssembleException, BaseException {
+    public String transactionAssembleForDeploy(String contractAbi, String bytecodeBin, int groupId, List<Object> constructorParam) throws TransactionAssembleException, BaseException {
         String encodedConstructor = "";
         // input handle
         AbiDefinition abiDefinition = getConstructorAbiDefinition(contractAbi);
@@ -131,11 +144,11 @@ public class TransactionAssembleManager {
         Random r = new Random();
         BigInteger randomid = new BigInteger(250, r);
 
-        BigInteger blockNumberLimit = blockNumber.add(new BigInteger(blockLimit.toString()));
+        BigInteger blockLimit = web3j.getBlockNumberCache();
 
         ExtendedRawTransaction extendedRawTransaction =
                 ExtendedRawTransaction.createTransaction(randomid, GAS_PRICE,
-                        GAS_LIMIT, blockNumberLimit, "", BigInteger.ZERO, encodedFunction,
+                        GAS_LIMIT, blockLimit, "", BigInteger.ZERO, encodedFunction,
                         new BigInteger("1"), BigInteger.valueOf(groupId), "");
         byte[] encodedTransaction = ExtendedTransactionEncoder.encode(extendedRawTransaction);
         String encodedDataStr = Numeric.toHexString(encodedTransaction);
@@ -144,7 +157,7 @@ public class TransactionAssembleManager {
     }
 
     // TransactionReceipt just contains transactionHash when sync is false;
-    public static TransactionReceipt sendSignedTransaction(String signedStr, Boolean sync, Web3j web3j) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    public TransactionReceipt sendSignedTransaction(String signedStr, Boolean sync) throws InterruptedException, ExecutionException, TimeoutException, IOException {
 
         if (sync) {
             final CompletableFuture<TransactionReceipt> transFuture = new CompletableFuture<>();
@@ -159,7 +172,7 @@ public class TransactionAssembleManager {
         }
     }
 
-    public static Object sendQueryTransaction(String encodeStr, String contractAddress, String funcName, String contractAbi, Web3j web3j, String userAddress) throws IOException, BaseException {
+    public Object sendQueryTransaction(String encodeStr, String contractAddress, String funcName, String contractAbi) throws IOException, BaseException {
         String callOutput = web3j.call(Transaction.createEthCallTransaction(userAddress, contractAddress, encodeStr), DefaultBlockParameterName.LATEST)
                 .send().getValue().getOutput();
 
@@ -181,7 +194,7 @@ public class TransactionAssembleManager {
         return response;
     }
 
-    public static String signMessageByEncryptType(String hexMessage, ECKeyPair keyPair, int encryptType) {
+    public String signMessageByEncryptType(String hexMessage, ECKeyPair keyPair, int encryptType) {
 
         byte[] messageByte = hexStringToBytes(hexMessage);
         Sign.SignatureData signatureData;
@@ -235,7 +248,7 @@ public class TransactionAssembleManager {
     }
 
 
-    public static void sendMessage(Web3j web3j, String signMsg, final CompletableFuture<TransactionReceipt> future) throws IOException {
+    public void sendMessage(Web3j web3j, String signMsg, final CompletableFuture<TransactionReceipt> future) throws IOException {
         Request<?, SendTransaction> request = web3j.sendRawTransaction(signMsg);
         request.setNeedTransCallback(true);
         request.setTransactionSucCallback(new TransactionSucCallback() {
