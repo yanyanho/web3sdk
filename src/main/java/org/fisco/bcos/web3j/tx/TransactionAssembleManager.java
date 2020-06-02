@@ -105,8 +105,7 @@ public class TransactionAssembleManager {
 
             BigInteger blockLimit = web3j.getBlockNumberCache();
 
-            ExtendedRawTransaction extendedRawTransaction =
-                    ExtendedRawTransaction.createTransaction(randomid, GAS_PRICE,
+            ExtendedRawTransaction extendedRawTransaction = ExtendedRawTransaction.createTransaction(randomid, GAS_PRICE,
                             GAS_LIMIT, blockLimit, contractAddress, BigInteger.ZERO, encodedFunction,
                             new BigInteger("1"), BigInteger.valueOf(groupId), "");
             byte[] encodedTransaction = ExtendedTransactionEncoder.encode(extendedRawTransaction);
@@ -114,7 +113,6 @@ public class TransactionAssembleManager {
             return encodedDataStr;
         }
     }
-
 
     public String transactionAssembleForDeploy(String contractAbi, String bytecodeBin, int groupId, List<Object> constructorParam) throws TransactionAssembleException, BaseException {
         String encodedConstructor = "";
@@ -156,8 +154,46 @@ public class TransactionAssembleManager {
         String encodedDataStr = Numeric.toHexString(encodedTransaction);
         return encodedDataStr;
 
-
     }
+
+    // TransactionReceipt just contains transactionHash when sync is false;
+    public TransactionReceipt sendSignedTransaction(String signedStr, Boolean sync) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+
+        if (sync) {
+            final CompletableFuture<TransactionReceipt> transFuture = new CompletableFuture<>();
+            sendMessage(web3j, signedStr, transFuture);
+            TransactionReceipt receipt = transFuture.get(transMaxWait, TimeUnit.SECONDS);
+            return receipt;
+        } else {
+            TransactionReceipt transactionReceipt = new TransactionReceipt();
+            web3j.sendRawTransaction(signedStr).sendAsync();
+            transactionReceipt.setTransactionHash(Hash.sha3(signedStr));
+            return transactionReceipt;
+        }
+    }
+
+    public Object sendQueryTransaction(String encodeStr, String contractAddress, String funcName, String contractAbi) throws IOException, BaseException {
+        String callOutput = web3j.call(Transaction.createEthCallTransaction(userAddress, contractAddress, encodeStr), DefaultBlockParameterName.LATEST)
+                .send().getValue().getOutput();
+
+        AbiDefinition abiDefinition = getFunctionAbiDefinition(funcName, contractAbi);
+        if (Objects.isNull(abiDefinition)) {
+            throw new TransactionAssembleException("contract funcName is error");
+        }
+
+        List<String> funOutputTypes = AbiUtil.getFuncOutputType(abiDefinition);
+        List<TypeReference<?>> finalOutputs = AbiUtil.outputFormat(funOutputTypes);
+
+        List<Type> typeList = FunctionReturnDecoder.decode(callOutput, Utils.convert(finalOutputs));
+        Object response;
+        if (typeList.size() > 0) {
+            response = AbiUtil.callResultParse(funOutputTypes, typeList);
+        } else {
+            response = typeList;
+        }
+        return response;
+    }
+
 
     public Boolean checkMethodIsConstant(String contractAbi, String funcName) throws TransactionAssembleException {
         AbiDefinition abiDefinition = getFunctionAbiDefinition(funcName, contractAbi);
@@ -194,43 +230,6 @@ public class TransactionAssembleManager {
         return result;
     }
 
-    // TransactionReceipt just contains transactionHash when sync is false;
-    public TransactionReceipt sendSignedTransaction(String signedStr, Boolean sync) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-
-        if (sync) {
-            final CompletableFuture<TransactionReceipt> transFuture = new CompletableFuture<>();
-            sendMessage(web3j, signedStr, transFuture);
-            TransactionReceipt receipt = transFuture.get(transMaxWait, TimeUnit.SECONDS);
-            return receipt;
-        } else {
-            TransactionReceipt transactionReceipt = new TransactionReceipt();
-            transactionReceipt.setTransactionHash(Hash.sha3(signedStr));
-            return transactionReceipt;
-        }
-    }
-
-
-    public Object sendQueryTransaction(String encodeStr, String contractAddress, String funcName, String contractAbi) throws IOException, BaseException {
-        String callOutput = web3j.call(Transaction.createEthCallTransaction(userAddress, contractAddress, encodeStr), DefaultBlockParameterName.LATEST)
-                .send().getValue().getOutput();
-
-        AbiDefinition abiDefinition = getFunctionAbiDefinition(funcName, contractAbi);
-        if (Objects.isNull(abiDefinition)) {
-            throw new TransactionAssembleException("contract funcName is error");
-        }
-
-        List<String> funOutputTypes = AbiUtil.getFuncOutputType(abiDefinition);
-        List<TypeReference<?>> finalOutputs = AbiUtil.outputFormat(funOutputTypes);
-
-        List<Type> typeList = FunctionReturnDecoder.decode(callOutput, Utils.convert(finalOutputs));
-        Object response;
-        if (typeList.size() > 0) {
-            response = AbiUtil.callResultParse(funOutputTypes, typeList);
-        } else {
-            response = typeList;
-        }
-        return response;
-    }
 
     public void sendMessage(Web3j web3j, String signMsg, final CompletableFuture<TransactionReceipt> future) throws IOException {
         Request<?, SendTransaction> request = web3j.sendRawTransaction(signMsg);
