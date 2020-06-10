@@ -16,7 +16,7 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.*;
 
-public class TransAssembleManagerTest  extends TestBase {
+public class TransAssembleManagerWithWeb3jTest extends TestBase {
 
     private TransactionAssembleManagerWithWeb3j transactionAssembleManagerWithWeb3j = new TransactionAssembleManagerWithWeb3j(web3j,credentials.getAddress());
 
